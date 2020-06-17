@@ -1,3 +1,7 @@
+# v1.11.1 Release - 06/11/2020
+
+Test release
+
 # v1.11.0 Release - 06/11/2020
 
 Note: This release comes with a new config version `v2beta5`. To upgrade your skaffold.yaml, use `skaffold fix`. If you choose not to upgrade, skaffold will auto-upgrade as best as it can.
