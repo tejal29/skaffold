@@ -40,7 +40,7 @@ const (
 	noneDigestSource   = "none"
 )
 
-// Runner is responsible for running the skaffold build, test and deploy config.
+// runner is responsible for running the skaffold build, test and deploy config.
 type Runner interface {
 	Dev(context.Context, io.Writer, []*latest.Artifact) error
 	ApplyDefaultRepo(tag string) (string, error)
