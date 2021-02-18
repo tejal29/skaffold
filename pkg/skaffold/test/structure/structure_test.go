@@ -50,7 +50,7 @@ func TestNewRunner(t *testing.T) {
 
 		structureTests := []string{"test.yaml"}
 
-		testRunner := NewRunner(cfg, structureTests, func(imageName string) (bool, error) { return true, nil })
+		testRunner := New(cfg, structureTests, func(imageName string) (bool, error) { return true, nil })
 		err := testRunner.Test(context.Background(), ioutil.Discard, imageName, []build.Artifact{{
 			ImageName: "image",
 			Tag:       "image:tag",
@@ -75,7 +75,7 @@ func TestIgnoreDockerNotFound(t *testing.T) {
 		}
 
 		structureTests := []string{"test.yaml"}
-		testRunner := NewRunner(cfg, structureTests, func(imageName string) (bool, error) { return true, nil })
+		testRunner := New(cfg, structureTests, func(imageName string) (bool, error) { return true, nil })
 
 		t.CheckNil(testRunner)
 	})
