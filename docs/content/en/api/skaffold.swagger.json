@@ -261,6 +261,7 @@
               "DEPLOY_MANIFEST_WRITE_ERR",
               "DEPLOY_PARSE_MANIFEST_IMAGES_ERR",
               "DEPLOY_HELM_CREATE_NS_NOT_AVAILABLE",
+              "DEPLOY_CLUSTER_INTERNAL_SYSTEM_ERR",
               "TEST_USER_CONFIG_ERR",
               "TEST_CST_USER_ERR",
               "TEST_IMG_PULL_ERR"
@@ -379,6 +380,7 @@
               "DEPLOY_MANIFEST_WRITE_ERR",
               "DEPLOY_PARSE_MANIFEST_IMAGES_ERR",
               "DEPLOY_HELM_CREATE_NS_NOT_AVAILABLE",
+              "DEPLOY_CLUSTER_INTERNAL_SYSTEM_ERR",
               "TEST_USER_CONFIG_ERR",
               "TEST_CST_USER_ERR",
               "TEST_IMG_PULL_ERR"
@@ -515,6 +517,7 @@
               "DEPLOY_MANIFEST_WRITE_ERR",
               "DEPLOY_PARSE_MANIFEST_IMAGES_ERR",
               "DEPLOY_HELM_CREATE_NS_NOT_AVAILABLE",
+              "DEPLOY_CLUSTER_INTERNAL_SYSTEM_ERR",
               "TEST_USER_CONFIG_ERR",
               "TEST_CST_USER_ERR",
               "TEST_IMG_PULL_ERR"
@@ -633,6 +636,7 @@
               "DEPLOY_MANIFEST_WRITE_ERR",
               "DEPLOY_PARSE_MANIFEST_IMAGES_ERR",
               "DEPLOY_HELM_CREATE_NS_NOT_AVAILABLE",
+              "DEPLOY_CLUSTER_INTERNAL_SYSTEM_ERR",
               "TEST_USER_CONFIG_ERR",
               "TEST_CST_USER_ERR",
               "TEST_IMG_PULL_ERR"
@@ -851,6 +855,7 @@
               "DEPLOY_MANIFEST_WRITE_ERR",
               "DEPLOY_PARSE_MANIFEST_IMAGES_ERR",
               "DEPLOY_HELM_CREATE_NS_NOT_AVAILABLE",
+              "DEPLOY_CLUSTER_INTERNAL_SYSTEM_ERR",
               "TEST_USER_CONFIG_ERR",
               "TEST_CST_USER_ERR",
               "TEST_IMG_PULL_ERR"
@@ -969,6 +974,7 @@
               "DEPLOY_MANIFEST_WRITE_ERR",
               "DEPLOY_PARSE_MANIFEST_IMAGES_ERR",
               "DEPLOY_HELM_CREATE_NS_NOT_AVAILABLE",
+              "DEPLOY_CLUSTER_INTERNAL_SYSTEM_ERR",
               "TEST_USER_CONFIG_ERR",
               "TEST_CST_USER_ERR",
               "TEST_IMG_PULL_ERR"
@@ -1117,6 +1123,7 @@
               "DEPLOY_MANIFEST_WRITE_ERR",
               "DEPLOY_PARSE_MANIFEST_IMAGES_ERR",
               "DEPLOY_HELM_CREATE_NS_NOT_AVAILABLE",
+              "DEPLOY_CLUSTER_INTERNAL_SYSTEM_ERR",
               "TEST_USER_CONFIG_ERR",
               "TEST_CST_USER_ERR",
               "TEST_IMG_PULL_ERR"
@@ -1235,6 +1242,7 @@
               "DEPLOY_MANIFEST_WRITE_ERR",
               "DEPLOY_PARSE_MANIFEST_IMAGES_ERR",
               "DEPLOY_HELM_CREATE_NS_NOT_AVAILABLE",
+              "DEPLOY_CLUSTER_INTERNAL_SYSTEM_ERR",
               "TEST_USER_CONFIG_ERR",
               "TEST_CST_USER_ERR",
               "TEST_IMG_PULL_ERR"
@@ -1384,6 +1392,7 @@
               "DEPLOY_MANIFEST_WRITE_ERR",
               "DEPLOY_PARSE_MANIFEST_IMAGES_ERR",
               "DEPLOY_HELM_CREATE_NS_NOT_AVAILABLE",
+              "DEPLOY_CLUSTER_INTERNAL_SYSTEM_ERR",
               "TEST_USER_CONFIG_ERR",
               "TEST_CST_USER_ERR",
               "TEST_IMG_PULL_ERR"
@@ -1502,6 +1511,7 @@
               "DEPLOY_MANIFEST_WRITE_ERR",
               "DEPLOY_PARSE_MANIFEST_IMAGES_ERR",
               "DEPLOY_HELM_CREATE_NS_NOT_AVAILABLE",
+              "DEPLOY_CLUSTER_INTERNAL_SYSTEM_ERR",
               "TEST_USER_CONFIG_ERR",
               "TEST_CST_USER_ERR",
               "TEST_IMG_PULL_ERR"
@@ -1681,6 +1691,7 @@
               "DEPLOY_MANIFEST_WRITE_ERR",
               "DEPLOY_PARSE_MANIFEST_IMAGES_ERR",
               "DEPLOY_HELM_CREATE_NS_NOT_AVAILABLE",
+              "DEPLOY_CLUSTER_INTERNAL_SYSTEM_ERR",
               "TEST_USER_CONFIG_ERR",
               "TEST_CST_USER_ERR",
               "TEST_IMG_PULL_ERR"
@@ -1811,6 +1822,7 @@
               "DEPLOY_MANIFEST_WRITE_ERR",
               "DEPLOY_PARSE_MANIFEST_IMAGES_ERR",
               "DEPLOY_HELM_CREATE_NS_NOT_AVAILABLE",
+              "DEPLOY_CLUSTER_INTERNAL_SYSTEM_ERR",
               "TEST_USER_CONFIG_ERR",
               "TEST_CST_USER_ERR",
               "TEST_IMG_PULL_ERR"
@@ -1941,6 +1953,7 @@
               "DEPLOY_MANIFEST_WRITE_ERR",
               "DEPLOY_PARSE_MANIFEST_IMAGES_ERR",
               "DEPLOY_HELM_CREATE_NS_NOT_AVAILABLE",
+              "DEPLOY_CLUSTER_INTERNAL_SYSTEM_ERR",
               "TEST_USER_CONFIG_ERR",
               "TEST_CST_USER_ERR",
               "TEST_IMG_PULL_ERR"
@@ -2757,6 +2770,7 @@
         "DEPLOY_MANIFEST_WRITE_ERR",
         "DEPLOY_PARSE_MANIFEST_IMAGES_ERR",
         "DEPLOY_HELM_CREATE_NS_NOT_AVAILABLE",
+        "DEPLOY_CLUSTER_INTERNAL_SYSTEM_ERR",
         "TEST_USER_CONFIG_ERR",
         "TEST_CST_USER_ERR",
         "TEST_IMG_PULL_ERR"

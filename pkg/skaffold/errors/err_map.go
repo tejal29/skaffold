@@ -20,9 +20,9 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/runner/runcontext"
 	"github.com/sirupsen/logrus"
 
-	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/config"
 	kubectx "github.com/GoogleContainerTools/skaffold/pkg/skaffold/kubernetes/context"
 	"github.com/GoogleContainerTools/skaffold/proto/v1"
 )
@@ -36,13 +36,6 @@ const (
 // re is a shortcut around regexp.MustCompile
 func re(s string) *regexp.Regexp {
 	return regexp.MustCompile(s)
-}
-
-type problem struct {
-	regexp      *regexp.Regexp
-	description func(error) string
-	errCode     proto.StatusCode
-	suggestion  func(opts config.SkaffoldOptions) []*proto.Suggestion
 }
 
 var (
@@ -66,7 +59,7 @@ var (
 			description: func(error) string {
 				return "Build Cancelled."
 			},
-			suggestion: func(config.SkaffoldOptions) []*proto.Suggestion {
+			suggestion: func(_ runcontext.RunContext) []*proto.Suggestion {
 				return nil
 			},
 		},
@@ -76,7 +69,7 @@ var (
 				return "Build Failed"
 			},
 			errCode: proto.StatusCode_BUILD_PROJECT_NOT_FOUND,
-			suggestion: func(config.SkaffoldOptions) []*proto.Suggestion {
+			suggestion: func(_ runcontext.RunContext) []*proto.Suggestion {
 				return []*proto.Suggestion{{
 					SuggestionCode: proto.SuggestionCode_CHECK_GCLOUD_PROJECT,
 					Action:         "Check your GCR project",
@@ -93,7 +86,7 @@ var (
 				}
 				return "Build Failed. Could not connect to Docker daemon"
 			},
-			suggestion: func(config.SkaffoldOptions) []*proto.Suggestion {
+			suggestion: func(runcontext.RunContext) []*proto.Suggestion {
 				return []*proto.Suggestion{{
 					SuggestionCode: proto.SuggestionCode_CHECK_DOCKER_RUNNING,
 					Action:         "Check if docker is running",
@@ -115,8 +108,8 @@ var (
 			return fmt.Sprintf("%s. Ignoring files dependencies for all ONBUILD triggers", pre)
 		},
 		errCode: proto.StatusCode_DEVINIT_UNSUPPORTED_V1_MANIFEST,
-		suggestion: func(opts config.SkaffoldOptions) []*proto.Suggestion {
-			if opts.Command == dev || opts.Command == debug {
+		suggestion: func(runCtx runcontext.RunContext) []*proto.Suggestion {
+			if runCtx.Opts.Command == dev || runCtx.Opts.Command == debug {
 				return []*proto.Suggestion{{
 					SuggestionCode: proto.SuggestionCode_RUN_DOCKER_PULL,
 					Action:         "To avoid, hit Cntrl-C and run `docker pull` to fetch the specified image and retry",

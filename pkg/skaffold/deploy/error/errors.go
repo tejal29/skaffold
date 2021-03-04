@@ -18,15 +18,31 @@ package error
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
+	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/cluster"
+	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/constants"
 	sErrors "github.com/GoogleContainerTools/skaffold/pkg/skaffold/errors"
+	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/runner/runcontext"
 	"github.com/GoogleContainerTools/skaffold/proto/v1"
 )
+
+// re is a shortcut around regexp.MustCompile
+func re(s string) *regexp.Regexp {
+	return regexp.MustCompile(s)
+}
 
 const (
 	executableNotFound = "executable file not found"
 	notFound           = "%s not found"
+)
+
+var (
+	internalServerError = re(".*Internal Server Error")
+
+	// for testing
+	isMinikube = cluster.GetClient().IsMinikube
 )
 
 // DebugHelperRetrieveErr is thrown when debug helpers could not be retrieved.
@@ -56,4 +72,43 @@ func MissingToolErr(toolName string, err error) string {
 		return fmt.Sprintf(notFound, toolName)
 	}
 	return err.Error()
+}
+
+func isClusterInternalSystemError(err error) bool {
+	return internalServerError.MatchString(err.Error())
+}
+
+func internalSystemError(err error) error {
+	return sErrors.NewProblem(
+		func(err error) string {
+			return fmt.Sprintf("Deploy Failed. %v", err)
+		},
+		proto.StatusCode_DEPLOY_CLUSTER_INTERNAL_SYSTEM_ERR,
+		func(runCtx runcontext.RunContext) []*proto.Suggestion {
+			action := fmt.Sprintf("Something went wrong with your cluster %q", runCtx.KubeContext)
+			if isMinikube(runCtx.KubeContext) {
+				action = fmt.Sprintf("Run minikube status -p %s to check if minikube is running", runCtx.KubeContext)
+			}
+			return []*proto.Suggestion{{
+				SuggestionCode: proto.SuggestionCode_OPEN_ISSUE,
+				// TODO: show tip to run minikube logs command and attach logs.
+				Action: fmt.Sprintf("%s. Try again.\nIf this keeps happening please open an issue %s", action, constants.GithubIssueLink),
+			}}
+		},
+		err,
+	)
+}
+
+func UserError(err error, sc proto.StatusCode) error {
+	if sErrors.IsSkaffoldErr(err) {
+		return err
+	}
+	if isClusterInternalSystemError(err) {
+		return internalSystemError(err)
+	}
+	return sErrors.NewError(err,
+		proto.ActionableErr{
+			Message: err.Error(),
+			ErrCode: sc,
+		})
 }

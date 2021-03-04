@@ -22,8 +22,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/config"
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/instrumentation"
+	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/runner/runcontext"
 	"github.com/GoogleContainerTools/skaffold/proto/v1"
 )
 
@@ -42,10 +42,10 @@ const (
 )
 
 var (
-	setOptionsOnce sync.Once
-	skaffoldOpts   config.SkaffoldOptions
+	setRunContextOnce sync.Once
+	runCtx            runcontext.RunContext
 
-	reportIssueSuggestion = func(config.SkaffoldOptions) []*proto.Suggestion {
+	reportIssueSuggestion = func(runcontext.RunContext) []*proto.Suggestion {
 		return []*proto.Suggestion{{
 			SuggestionCode: proto.SuggestionCode_OPEN_ISSUE,
 			Action:         reportIssueText,
@@ -55,11 +55,11 @@ var (
 
 type Phase string
 
-// SetSkaffoldOptions set Skaffold config options once. These options are used later to
-// suggest actionable error messages based on skaffold run context
-func SetSkaffoldOptions(opts config.SkaffoldOptions) {
-	setOptionsOnce.Do(func() {
-		skaffoldOpts = opts
+// SetRunContext set Skaffold runCtx  once. This run context is used later to
+// suggest actionable error messages based on skaffold command line options and run context
+func SetRunContext(rc runcontext.RunContext) {
+	setRunContextOnce.Do(func() {
+		runCtx = rc
 	})
 }
 
@@ -78,19 +78,16 @@ func ShowAIError(err error) error {
 		instrumentation.SetErrorCode(err.(Error).StatusCode())
 		return err
 	}
+	if p, ok := isProblem(err); ok {
+		instrumentation.SetErrorCode(p.errCode)
+		return p
+	}
 
 	var knownProblems = append(knownBuildProblems, knownDeployProblems...)
-	for _, v := range append(knownProblems, knownInitProblems...) {
-		if v.regexp.MatchString(err.Error()) {
-			instrumentation.SetErrorCode(v.errCode)
-			if suggestions := v.suggestion(skaffoldOpts); suggestions != nil {
-				description := fmt.Sprintf("%s\n", err)
-				if v.description != nil {
-					description = strings.Trim(v.description(err), ".")
-				}
-				return fmt.Errorf("%s. %s", description, concatSuggestions(suggestions))
-			}
-			return fmt.Errorf(v.description(err))
+	for _, p := range append(knownProblems, knownInitProblems...) {
+		if p.regexp.MatchString(err.Error()) {
+			instrumentation.SetErrorCode(p.errCode)
+			return p.withErr(err)
 		}
 	}
 	return err
@@ -98,9 +95,9 @@ func ShowAIError(err error) error {
 
 func IsOldImageManifestProblem(err error) (string, bool) {
 	if err != nil && oldImageManifest.regexp.MatchString(err.Error()) {
-		if s := oldImageManifest.suggestion(skaffoldOpts); s != nil {
+		if s := oldImageManifest.suggestion(runCtx); s != nil {
 			return fmt.Sprintf("%s. %s", oldImageManifest.description(err),
-				concatSuggestions(oldImageManifest.suggestion(skaffoldOpts))), true
+				concatSuggestions(oldImageManifest.suggestion(runCtx))), true
 		}
 		return "", true
 	}
@@ -112,11 +109,15 @@ func getErrorCodeFromError(phase Phase, err error) (proto.StatusCode, []*proto.S
 	if errors.As(err, &sErr) {
 		return sErr.StatusCode(), sErr.Suggestions()
 	}
+	var p problem
+	if errors.As(err, &p) {
+		return p.errCode, p.suggestion(runCtx)
+	}
 
 	if problems, ok := allErrors[phase]; ok {
 		for _, v := range problems {
 			if v.regexp.MatchString(err.Error()) {
-				return v.errCode, v.suggestion(skaffoldOpts)
+				return v.errCode, v.suggestion(runCtx)
 			}
 		}
 	}
