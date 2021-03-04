@@ -20,10 +20,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/runner/runcontext"
-	"k8s.io/client-go/tools/clientcmd/api"
-
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/config"
+	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/runner/runcontext"
 	"github.com/GoogleContainerTools/skaffold/proto/v1"
 	"github.com/GoogleContainerTools/skaffold/testutil"
 )
@@ -266,36 +264,13 @@ func TestShowAIError(t *testing.T) {
 				}},
 			},
 		},
-		{
-			description: "error is a problem",
-			opts:        config.SkaffoldOptions{},
-			context:     &config.ContextConfig{},
-			err: problem{
-				errCode:     proto.StatusCode_DEPLOY_CLUSTER_INTERNAL_SYSTEM_ERR,
-				description: func(_ error) string { return "encountered internal system error" },
-				suggestion: func(runcontext.RunContext) []*proto.Suggestion {
-					return []*proto.Suggestion{{SuggestionCode: proto.SuggestionCode_OPEN_ISSUE, Action: "Try again"}}
-				},
-				err: fmt.Errorf("something went wrong"),
-			},
-			expected: "encountered internal system error. Try again.",
-			expectedAE: &proto.ActionableErr{
-				ErrCode: proto.StatusCode_DEPLOY_CLUSTER_INTERNAL_SYSTEM_ERR,
-				Message: "encountered internal system error. Try again.",
-				Suggestions: []*proto.Suggestion{{
-					SuggestionCode: proto.SuggestionCode_OPEN_ISSUE,
-					Action:         "Try again",
-				}},
-			},
-		},
 	}
 	for _, test := range append(tests, initTestCases...) {
 		testutil.Run(t, test.description, func(t *testutil.T) {
 			t.Override(&getConfigForCurrentContext, func(string) (*config.ContextConfig, error) {
 				return test.context, nil
 			})
-			t.SetupFakeKubernetesContext(api.Config{CurrentContext: "test_cluster"})
-			runCtx = runcontext.RunContext{Opts: test.opts}
+			runCtx = runcontext.RunContext{KubeContext: "test_cluster", Opts: test.opts}
 			actual := ShowAIError(test.err)
 			t.CheckDeepEqual(test.expected, actual.Error())
 			actualAE := ActionableErr(test.phase, test.err)
@@ -365,7 +340,6 @@ func TestIsOldImageManifestProblem(t *testing.T) {
 				},
 			}
 			actualMsg, actual := IsOldImageManifestProblem(test.err)
-			fmt.Println(actualMsg)
 			t.CheckDeepEqual(test.expectedMsg, actualMsg)
 			t.CheckDeepEqual(test.expected, actual)
 		})

@@ -45,7 +45,7 @@ var (
 	setRunContextOnce sync.Once
 	runCtx            runcontext.RunContext
 
-	reportIssueSuggestion = func(runcontext.RunContext) []*proto.Suggestion {
+	reportIssueSuggestion = func(ctx runcontext.RunContext) []*proto.Suggestion {
 		return []*proto.Suggestion{{
 			SuggestionCode: proto.SuggestionCode_OPEN_ISSUE,
 			Action:         reportIssueText,
