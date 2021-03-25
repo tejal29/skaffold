@@ -21,7 +21,9 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"path/filepath"
 
+	"github.com/mitchellh/go-homedir"
 	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -83,7 +85,6 @@ func (b *Builder) buildWithKaniko(ctx context.Context, out io.Writer, workspace 
 
 	// Wait for the pods to succeed while streaming the logs
 	waitForLogs := streamLogs(ctx, out, pod.Name, pods)
-
 	if err := kubernetes.WaitForPodSucceeded(ctx, pods, pod.Name, b.timeout); err != nil {
 		waitForLogs()
 		return "", err
@@ -120,11 +121,14 @@ func (b *Builder) copyKanikoBuildContext(ctx context.Context, workspace string, 
 		return fmt.Errorf("uploading build context: %s", out.String())
 	}
 
+	if err := b.createSecretIfRequired(ctx, buildCtx, podName); err != nil {
+		return err
+	}
+
 	// Generate a file to successfully terminate the init container.
 	if out, err := b.kubectlcli.RunOut(ctx, "exec", podName, "-c", initContainer, "-n", b.Namespace, "--", "touch", "/tmp/complete"); err != nil {
 		return fmt.Errorf("finishing upload of the build context: %s", out)
 	}
-
 	return nil
 }
 
@@ -180,4 +184,20 @@ func generateEnvFromImage(imageStr string) ([]v1.EnvVar, error) {
 	generatedEnvs = append(generatedEnvs, v1.EnvVar{Name: "IMAGE_NAME", Value: imgRef.Name})
 	generatedEnvs = append(generatedEnvs, v1.EnvVar{Name: "IMAGE_TAG", Value: imgRef.Tag})
 	return generatedEnvs, nil
+}
+
+
+
+
+func (b *Builder) createSecretIfRequired(ctx context.Context, buildCtx *io.PipeReader, podName string) error {
+	homeDir, err := homedir.Dir()
+	if err != nil {
+		return err
+	}
+	gacCredentialsFile := filepath.Join([]string{homeDir, ".config", "gcloud", "application_default_credentials.json"}...)
+		var out bytes.Buffer
+	if err := b.kubectlcli.Run(ctx, buildCtx, &out, "cp",  gacCredentialsFile, fmt.Sprintf("%s:/kaniko/secrets/gac.json", podName), "-c", initContainer, "-n", b.Namespace); err != nil {
+		return fmt.Errorf("copying secret: %s", out.String())
+	}
+	return nil
 }
