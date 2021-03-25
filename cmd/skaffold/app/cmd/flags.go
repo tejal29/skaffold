@@ -493,6 +493,15 @@ var flagRegistry = []Flag{
 		DefinedOn:     []string{"debug", "dev", "run"},
 		IsEnum:        true,
 	},
+	{
+		Name:          "perform-cluster-builds",
+		Usage:         "[hackweek] perform kaniko build",
+		Value:         &opts.PerformClusterBuilds,
+		DefValue:      false,
+		FlagAddMethod: "BoolVar",
+		Hidden:        true,
+		DefinedOn:     []string{"dev", "build", "run", "debug", "deploy"},
+	},
 }
 
 func methodNameByType(v reflect.Value) string {

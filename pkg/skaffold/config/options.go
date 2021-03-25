@@ -74,6 +74,9 @@ type SkaffoldOptions struct {
 	AddSkaffoldLabels bool
 	DetectMinikube    bool
 
+	// Perform in cluster kaniko builds for dockerfile builds.
+	PerformClusterBuilds bool
+
 	PortForward        PortForwardOptions
 	CustomTag          string
 	Namespace          string

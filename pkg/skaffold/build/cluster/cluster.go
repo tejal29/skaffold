@@ -23,11 +23,14 @@ import (
 
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/build"
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/build/custom"
+	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/build/kaniko"
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/build/misc"
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/constants"
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/docker"
+	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/schema/defaults"
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/schema/latest"
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/util"
+	v1 "k8s.io/api/core/v1"
 )
 
 // Build builds a list of artifacts with Kaniko.
@@ -80,10 +83,15 @@ func (b *Builder) runBuildForArtifact(ctx context.Context, out io.Writer, a *lat
 	switch {
 	case a.KanikoArtifact != nil:
 		return b.buildWithKaniko(ctx, out, a.Workspace, a.ImageName, a.KanikoArtifact, tag, requiredImages)
-
 	case a.CustomArtifact != nil:
 		return custom.NewArtifactBuilder(nil, b.cfg, true, append(b.retrieveExtraEnv(), util.EnvPtrMapToSlice(requiredImages, "=")...)).Build(ctx, out, a, tag)
-
+	case a.DockerArtifact != nil:
+		kanikoArtifact, err := b.kanikoArtifactWithGAC(a)
+		if err != nil {
+			return "", err
+		}
+		defaults.SetKanikoArtifactDefaults(kanikoArtifact)
+		return b.buildWithKaniko(ctx, out, a.Workspace, a.ImageName, kanikoArtifact, tag, requiredImages)
 	default:
 		return "", fmt.Errorf("unexpected type %q for in-cluster artifact:\n%s", misc.ArtifactType(a), misc.FormatArtifact(a))
 	}
@@ -100,4 +108,34 @@ func (b *Builder) retrieveExtraEnv() []string {
 		env = append(env, fmt.Sprintf("%s=%s", constants.DockerConfigSecretName, b.ClusterDetails.DockerConfig.SecretName))
 	}
 	return env
+}
+
+func (b *Builder) kanikoArtifactWithGAC(a *latest.Artifact) (*latest.KanikoArtifact, error){
+	b.ClusterDetails.Volumes = []v1.Volume{
+		{
+			Name : "kaniko-secret",
+			VolumeSource: v1.VolumeSource{
+				EmptyDir: &v1.EmptyDirVolumeSource{},
+			},
+		},
+	}
+	return &latest.KanikoArtifact {
+		Image: kaniko.DefaultImage,
+		DockerfilePath: a.DockerArtifact.DockerfilePath,
+		BuildArgs: a.DockerArtifact.BuildArgs,
+		SingleSnapshot: a.DockerArtifact.Squash,
+		Env: []v1.EnvVar{
+			{
+				Name: "GOOGLE_APPLICATION_CREDENTIALS",
+				Value: "/kaniko/secrets/gac.json",
+			},
+		},
+		VolumeMounts: []v1.VolumeMount{
+			{
+				Name: "kaniko-secret",
+				MountPath: "/kaniko/secrets/",
+			},
+		},
+
+	}, nil
 }

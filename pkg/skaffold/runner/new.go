@@ -28,6 +28,7 @@ import (
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/build/cache"
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/build/cluster"
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/build/gcb"
+	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/build/kaniko"
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/build/local"
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/deploy"
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/deploy/helm"
@@ -41,6 +42,7 @@ import (
 	pkgkubectl "github.com/GoogleContainerTools/skaffold/pkg/skaffold/kubectl"
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/kubernetes"
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/runner/runcontext"
+	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/schema/defaults"
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/schema/latest"
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/server"
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/sync"
@@ -196,6 +198,20 @@ func isImageLocal(runCtx *runcontext.RunContext, imageName string) (bool, error)
 func getBuilder(runCtx *runcontext.RunContext, store build.ArtifactStore, p latest.Pipeline) (build.PipelineBuilder, error) {
 	switch {
 	case p.Build.LocalBuild != nil:
+		if runCtx.Opts.PerformClusterBuilds && dockerBuildsWithSupportedFeatures() {
+			logrus.Debugln("Overriding local builder with cluster builder")
+			cd := &latest.ClusterDetails{
+				Timeout: kaniko.DefaultTimeout,
+				Namespace: runCtx.GetKubeNamespace(),
+			}
+			defaults.SetDefaultClusterNamespace(cd)
+			builder, err := cluster.NewBuilder(runCtx, cd)
+			if err != nil {
+				return nil, err
+			}
+			builder.ArtifactStore(store)
+			return builder, err
+		}
 		logrus.Debugln("Using builder: local")
 		builder, err := local.NewBuilder(runCtx, p.Build.LocalBuild)
 		if err != nil {
@@ -377,4 +393,11 @@ func getDeployer(runCtx *runcontext.RunContext, labels map[string]string) (deplo
 	}
 
 	return deployers, nil
+}
+
+func dockerBuildsWithSupportedFeatures() bool {
+	// Check if all build types are docker
+	// Check if dockerfile does not use any non kaniko supported features
+	// e.g. Secrets, SSH
+	return true
 }

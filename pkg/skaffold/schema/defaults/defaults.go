@@ -61,7 +61,7 @@ func Set(c *latest.SkaffoldConfig) error {
 			setDockerArtifactDefaults(a.DockerArtifact)
 
 		case a.KanikoArtifact != nil:
-			setKanikoArtifactDefaults(a.KanikoArtifact)
+			SetKanikoArtifactDefaults(a.KanikoArtifact)
 
 		case a.CustomArtifact != nil:
 			setCustomArtifactDefaults(a.CustomArtifact)
@@ -88,7 +88,7 @@ func Set(c *latest.SkaffoldConfig) error {
 	)
 
 	if err := withClusterConfig(c,
-		setDefaultClusterNamespace,
+		SetDefaultClusterNamespace,
 		setDefaultClusterTimeout,
 		setDefaultClusterPullSecret,
 		setDefaultClusterDockerConfigSecret,
@@ -266,7 +266,7 @@ func withClusterConfig(c *latest.SkaffoldConfig, opts ...func(*latest.ClusterDet
 	return nil
 }
 
-func setDefaultClusterNamespace(cluster *latest.ClusterDetails) error {
+func SetDefaultClusterNamespace(cluster *latest.ClusterDetails) error {
 	if cluster.Namespace == "" {
 		ns, err := currentNamespace()
 		if err != nil {
@@ -333,7 +333,7 @@ func defaultToKanikoArtifact(artifact *latest.Artifact) {
 	}
 }
 
-func setKanikoArtifactDefaults(a *latest.KanikoArtifact) {
+func SetKanikoArtifactDefaults(a *latest.KanikoArtifact) {
 	a.Image = valueOrDefault(a.Image, kaniko.DefaultImage)
 	a.DockerfilePath = valueOrDefault(a.DockerfilePath, constants.DefaultDockerfilePath)
 	a.InitImage = valueOrDefault(a.InitImage, constants.DefaultBusyboxImage)
