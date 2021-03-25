@@ -111,8 +111,6 @@ func (b *Builder) retrieveExtraEnv() []string {
 }
 
 func (b *Builder) kanikoArtifactWithGAC(a *latest.Artifact) (*latest.KanikoArtifact, error){
-	var strPointer = new(v1.HostPathType)
-	*strPointer = v1.HostPathFileOrCreate
 	b.ClusterDetails.Volumes = []v1.Volume{
 		{
 			Name : "kaniko-secret",

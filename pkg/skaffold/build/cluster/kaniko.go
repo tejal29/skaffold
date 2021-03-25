@@ -188,8 +188,6 @@ func generateEnvFromImage(imageStr string) ([]v1.EnvVar, error) {
 }
 
 
-
-
 func (b *Builder) createSecretIfRequired(ctx context.Context, buildCtx *io.PipeReader, podName string) error {
 	homeDir, err := homedir.Dir()
 	if err != nil {
