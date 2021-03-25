@@ -21,6 +21,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"os"
 	"path/filepath"
 
 	"github.com/mitchellh/go-homedir"
@@ -195,9 +196,19 @@ func (b *Builder) createSecretIfRequired(ctx context.Context, buildCtx *io.PipeR
 		return err
 	}
 	gacCredentialsFile := filepath.Join([]string{homeDir, ".config", "gcloud", "application_default_credentials.json"}...)
-		var out bytes.Buffer
+	if !userLoggedIn(gacCredentialsFile) {
+		return fmt.Errorf(fmt.Sprintf("You are not logged in to gcloud. Please run %q", "gcloud auth application-default login"))
+	}
+	var out bytes.Buffer
 	if err := b.kubectlcli.Run(ctx, buildCtx, &out, "cp",  gacCredentialsFile, fmt.Sprintf("%s:/kaniko/secrets/gac.json", podName), "-c", initContainer, "-n", b.Namespace); err != nil {
 		return fmt.Errorf("copying secret: %s", out.String())
 	}
 	return nil
+}
+
+func userLoggedIn(fs string) bool {
+	if _, err := os.Stat(fs); os.IsNotExist(err) {
+		return false
+	}
+	return true
 }
